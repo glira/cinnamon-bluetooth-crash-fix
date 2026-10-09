@@ -33,7 +33,7 @@ No `master` do Linux Mint o aborto já foi trocado por `return NULL` (issue [lin
 Tratar porta ausente como troca de porta: não usar o ponteiro na busca, e chamar `gvc_mixer_stream_change_port()` quando `active_port` é `NULL`.
 
 - Upstream, em cima do `master`: [linuxmint/cinnamon-desktop#278](https://github.com/linuxmint/cinnamon-desktop/pull/278)
-- Ubuntu 26.04, pacote `6.4.2-1ubuntu1`: `patches/cinnamon-desktop_6.4.2-1ubuntu1.debdiff`
+- Ubuntu 26.04, pacote `6.4.2-1ubuntu1`: [bugs.launchpad.net/bugs/2170365](https://bugs.launchpad.net/bugs/2170365) e `patches/cinnamon-desktop_6.4.2-1ubuntu1.debdiff`
 
 O patch do Ubuntu junta as duas partes, porque a 6.4.2 ainda tem o `assert`. O pull request do Mint só cobre os três chamadores, porque o `master` já devolve `NULL`.
 

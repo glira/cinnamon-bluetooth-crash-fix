@@ -1,10 +1,11 @@
 diff -Nru cinnamon-desktop-6.4.2/debian/changelog cinnamon-desktop-6.4.2/debian/changelog
 --- cinnamon-desktop-6.4.2/debian/changelog	2025-09-13 10:58:04.000000000 -0300
 +++ cinnamon-desktop-6.4.2/debian/changelog	2026-10-09 12:12:04.000000000 -0300
-@@ -1,3 +1,12 @@
+@@ -1,3 +1,13 @@
 +cinnamon-desktop (6.4.2-1ubuntu1) resolute; urgency=medium
 +
-+  * libcvc: do not crash when a Bluetooth headset has no active port.
++  * libcvc: do not crash when a Bluetooth headset has no active port
++    (LP: #2170365).
 +  * PipeWire 1.6 drops the stream port during profile switch.
 +    gvc_mixer_stream_get_port() aborted, and the callers that remain on
 +    upstream master still dereference the NULL result.
