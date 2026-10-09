@@ -1,0 +1,11 @@
+# After the NULL checks, three Bluetooth disconnect/connect cycles.
+# cinnamon PID stayed 62028. No segfault and no "code should not be reached"
+# in the journal after 11:43.
+
+cycle 1 disconnect: successful
+cycle 1 connect:    successful   cinnamon 62028
+cycle 2 disconnect: successful
+cycle 2 connect:    successful   cinnamon 62028
+cycle 3 disconnect: successful
+cycle 3 connect:    successful   cinnamon 62028
+journal since 11:43: no segfault

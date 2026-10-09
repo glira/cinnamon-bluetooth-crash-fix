@@ -1,0 +1,54 @@
+From 152f79d58aad36305dcb979a8f4af5a2972306b9 Mon Sep 17 00:00:00 2001
+From: GemayelLira <gemayellira@gmail.com>
+Date: Fri, 9 Oct 2026 11:57:58 -0300
+Subject: [PATCH] libcvc: handle missing active port in mixer control
+
+PipeWire 1.5.84 and later can drop a stream's active port while BlueZ
+switches a headset profile. gvc_mixer_stream_get_port() now returns
+NULL in that case, but three callers still dereference the result.
+
+That turns the old g_assert_not_reached abort into a NULL pointer
+dereference in cinnamon and csd-media-keys when a Bluetooth headset
+connects. Reproduced on Ubuntu 26.04 with PipeWire 1.6.2: segfault at 0
+in libcvc.so.0.
+
+Issue #267 removed the assert. These call sites were left unchecked.
+---
+ libcvc/gvc-mixer-control.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/libcvc/gvc-mixer-control.c b/libcvc/gvc-mixer-control.c
+index 149f8c1..8a420d0 100644
+--- a/libcvc/gvc-mixer-control.c
++++ b/libcvc/gvc-mixer-control.c
+@@ -272,7 +272,8 @@ gvc_mixer_control_lookup_device_from_stream (GvcMixerControl *control,
+                 }
+ 
+                 port = gvc_mixer_stream_get_port (stream);
+-                if (g_strcmp0 (gvc_mixer_ui_device_get_port (device), port->port) == 0) {
++                if (port != NULL &&
++                    g_strcmp0 (gvc_mixer_ui_device_get_port (device), port->port) == 0) {
+                         g_debug ("lookup-device-from-stream found device: device description '%s', device port = '%s', device stream id %i AND stream port = '%s' stream id '%u' and stream description '%s'",
+                                  gvc_mixer_ui_device_get_description (device),
+                                  gvc_mixer_ui_device_get_port (device),
+@@ -621,7 +622,7 @@ gvc_mixer_control_change_output (GvcMixerControl *control,
+         active_port = gvc_mixer_stream_get_port (stream);
+         output_port = gvc_mixer_ui_device_get_port (output);
+         /* First ensure the correct port is active on the sink */
+-        if (g_strcmp0 (active_port->port, output_port) != 0) {
++        if (active_port == NULL || g_strcmp0 (active_port->port, output_port) != 0) {
+                 g_debug ("Port change, switch to = %s", output_port);
+                 if (gvc_mixer_stream_change_port (stream, output_port) == FALSE) {
+                         g_warning ("Could not change port !");
+@@ -691,7 +692,7 @@ gvc_mixer_control_change_input (GvcMixerControl *control,
+         active_port = gvc_mixer_stream_get_port (stream);
+         input_port = gvc_mixer_ui_device_get_port (input);
+         /* First ensure the correct port is active on the sink */
+-        if (g_strcmp0 (active_port->port, input_port) != 0) {
++        if (active_port == NULL || g_strcmp0 (active_port->port, input_port) != 0) {
+                 g_debug ("Port change, switch to = %s", input_port);
+                 if (gvc_mixer_stream_change_port (stream, input_port) == FALSE) {
+                         g_warning ("Could not change port!");
+-- 
+2.53.0
+

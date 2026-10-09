@@ -1,0 +1,15 @@
+# Abort, stock libcvc 6.4.2-1, when the headset connected.
+# cinnamon-launcher then tried to exec metacity, which is not installed.
+
+Cvc:ERROR:../libcvc/gvc-mixer-stream.c:541:gvc_mixer_stream_get_port: code should not be reached
+cinnamon-session-binary: Application 'cinnamon-settings-daemon-media-keys.desktop' killed by signal 6
+File "/usr/bin/cinnamon-launcher", line 91, in wait_for_process
+    os.execvp(FALLBACK_COMMAND, (FALLBACK_COMMAND,) + FALLBACK_ARGS)
+FileNotFoundError: [Errno 2] No such file or directory
+
+# After removing only g_assert_not_reached(), the same event became a NULL dereference.
+# 2026-10-09 11:35:05 -03
+
+kernel: csd-media-keys: segfault at 0 in libcvc.so.0.0.0
+kernel: cinnamon:       segfault at 0 in libcvc.so.0.0.0
+cinnamon-session-binary: Application 'cinnamon-settings-daemon-media-keys.desktop' killed by signal 11

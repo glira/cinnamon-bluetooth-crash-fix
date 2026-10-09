@@ -1,0 +1,7 @@
+date: 2026-10-09
+os: Ubuntu 26.04.1 LTS
+kernel: 7.0.0-38-generic
+cinnamon: 6.4.13-2ubuntu0.2
+libcvc0t64: 6.4.2-1
+pipewire: 1.6.2-1ubuntu1.2
+wireplumber: 0.5.13-1ubuntu1

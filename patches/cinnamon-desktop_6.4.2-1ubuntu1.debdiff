@@ -1,0 +1,83 @@
+diff -Nru cinnamon-desktop-6.4.2/debian/changelog cinnamon-desktop-6.4.2/debian/changelog
+--- cinnamon-desktop-6.4.2/debian/changelog	2025-09-13 10:58:04.000000000 -0300
++++ cinnamon-desktop-6.4.2/debian/changelog	2026-10-09 12:12:04.000000000 -0300
+@@ -1,3 +1,12 @@
++cinnamon-desktop (6.4.2-1ubuntu1) resolute; urgency=medium
++
++  * libcvc: do not crash when a Bluetooth headset has no active port.
++  * PipeWire 1.6 drops the stream port during profile switch.
++    gvc_mixer_stream_get_port() aborted, and the callers that remain on
++    upstream master still dereference the NULL result.
++
++ -- Gemayel Lira <gemayellira@gmail.com>  Fri, 09 Oct 2026 12:12:04 -0300
++
+ cinnamon-desktop (6.4.2-1) unstable; urgency=medium
+ 
+   * New upstream version 6.4.2
+diff -Nru cinnamon-desktop-6.4.2/debian/patches/libcvc-missing-active-port.patch cinnamon-desktop-6.4.2/debian/patches/libcvc-missing-active-port.patch
+--- cinnamon-desktop-6.4.2/debian/patches/libcvc-missing-active-port.patch	1969-12-31 21:00:00.000000000 -0300
++++ cinnamon-desktop-6.4.2/debian/patches/libcvc-missing-active-port.patch	2026-10-09 12:02:11.000000000 -0300
+@@ -0,0 +1,56 @@
++Description: Do not crash when a mixer stream has no active port
++ PipeWire 1.5.84 and later can drop a stream's active port while BlueZ
++ switches a Bluetooth headset profile. gvc_mixer_stream_get_port() aborted
++ with g_assert_not_reached(), which killed cinnamon and csd-media-keys.
++ Return NULL instead, and skip the three callers that dereferenced the
++ result. Current cinnamon-desktop master already returns NULL, but those
++ callers still crash; see the forwarded pull request.
++Author: Gemayel Lira <gemayellira@gmail.com>
++Forwarded: https://github.com/linuxmint/cinnamon-desktop/pull/278
++Bug: https://github.com/linuxmint/cinnamon-desktop/issues/267
++
++Index: cinnamon-desktop-6.4.2/libcvc/gvc-mixer-control.c
++===================================================================
++--- cinnamon-desktop-6.4.2.orig/libcvc/gvc-mixer-control.c
+++++ cinnamon-desktop-6.4.2/libcvc/gvc-mixer-control.c
++@@ -271,7 +271,8 @@ gvc_mixer_control_lookup_device_from_str
++                         const GvcMixerStreamPort *port;
++                         port = gvc_mixer_stream_get_port (stream);
++ 
++-                        if (stream_id == gvc_mixer_stream_get_id (stream) &&
+++                        if (port != NULL &&
+++                            stream_id == gvc_mixer_stream_get_id (stream) &&
++                             g_strcmp0 (gvc_mixer_ui_device_get_port (device),
++                                        port->port) == 0) {
++                                 g_debug ("lookup-device-from-stream found device: device description '%s', device port = '%s', device stream id %i AND stream port = '%s' stream id '%u' and stream description '%s'",
++@@ -632,7 +633,7 @@ gvc_mixer_control_change_output (GvcMixe
++         active_port = gvc_mixer_stream_get_port (stream);
++         output_port = gvc_mixer_ui_device_get_port (output);
++         /* First ensure the correct port is active on the sink */
++-        if (g_strcmp0 (active_port->port, output_port) != 0) {
+++        if (active_port == NULL || g_strcmp0 (active_port->port, output_port) != 0) {
++                 g_debug ("Port change, switch to = %s", output_port);
++                 if (gvc_mixer_stream_change_port (stream, output_port) == FALSE) {
++                         g_warning ("Could not change port !");
++@@ -715,7 +716,7 @@ gvc_mixer_control_change_input (GvcMixer
++         active_port = gvc_mixer_stream_get_port (stream);
++         input_port = gvc_mixer_ui_device_get_port (input);
++         /* First ensure the correct port is active on the sink */
++-        if (g_strcmp0 (active_port->port, input_port) != 0) {
+++        if (active_port == NULL || g_strcmp0 (active_port->port, input_port) != 0) {
++                 g_debug ("Port change, switch to = %s", input_port);
++                 if (gvc_mixer_stream_change_port (stream, input_port) == FALSE) {
++                         g_warning ("Could not change port!");
++Index: cinnamon-desktop-6.4.2/libcvc/gvc-mixer-stream.c
++===================================================================
++--- cinnamon-desktop-6.4.2.orig/libcvc/gvc-mixer-stream.c
+++++ cinnamon-desktop-6.4.2/libcvc/gvc-mixer-stream.c
++@@ -538,8 +538,6 @@ gvc_mixer_stream_get_port (GvcMixerStrea
++                 }
++         }
++ 
++-        g_assert_not_reached ();
++-
++         return NULL;
++ }
++ 
+diff -Nru cinnamon-desktop-6.4.2/debian/patches/series cinnamon-desktop-6.4.2/debian/patches/series
+--- cinnamon-desktop-6.4.2/debian/patches/series	2025-09-13 10:58:04.000000000 -0300
++++ cinnamon-desktop-6.4.2/debian/patches/series	2026-10-09 12:12:04.000000000 -0300
+@@ -1,2 +1,3 @@
+ change-adwaita-to-default.patch
+ Replace-gnome-with-mate-as-default-icon-theme.patch
++libcvc-missing-active-port.patch
